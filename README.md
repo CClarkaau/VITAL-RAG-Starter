@@ -1,7 +1,6 @@
 # Project VITAL — LLM + RAG Testing Tutorial (Student Starter)
 
 **CSCI3364 — Software Testing, Quality and Security | Boston College**  
-**Hands-on lab: 90 minutes**
 
 In this tutorial you will build a local LLM chatbot, extend it with retrieval-augmented generation (RAG), and design tests that distinguish retrieval failures from generation failures.
 
@@ -27,14 +26,14 @@ The baseline chatbot works without RAG. If Ollama is unavailable, check that its
 
 ## Lab schedule
 
-| Minutes | Activity |
+| Activity |
 | --- | --- |
-| 0–10 | LLMs, hallucinations, RAG and test oracles |
-| 10–30 | Run chatbot and establish baseline responses |
-| 30–45 | Load policy documents and implement TF-IDF retrieval |
-| 45–65 | Add source context to model calls and a RAG toggle |
-| 65–85 | Design and run automated tests; compare answers |
-| 85–90 | Interpret results and report conclusions |
+| LLMs, hallucinations, RAG and test oracles |
+| Run chatbot and establish baseline responses |
+| Load policy documents and implement TF-IDF retrieval |
+| Add source context to model calls and a RAG toggle |
+| Design and run automated tests; compare answers |
+| Interpret results and report conclusions |
 
 ## Tasks (write the code yourself)
 
