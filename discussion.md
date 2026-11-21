@@ -1,12 +1,35 @@
-Project VITAL — RAG testing evidence
+# Project VITAL — RAG testing evidence
 
-Setup and comparison
+## Baseline
 
-Ollama served qwen2.5:1.5b locally. I ran each question in a fresh Streamlit
-AppTest session in both toggle states with temperature 0 and k=2. I reran
-the same questions after changing retrieval. The table shows the final run.
-Both runs returned identical answer text for these questions in each mode.
-The retrieved files are for RAG ON, and the source judgment applies to that answer.
+The baseline measures how Qwen answers when it receives only the question.
+Codex collected the recorded RAG OFF replies using the completed app with
+**Enable RAG** turned off. The assignment calls for collecting a baseline
+before implementation. The recorded runs establish the OFF comparison, and
+the timing of any earlier pre-implementation run is unverified.
+
+The first three rows below show the baseline questions about cancellation,
+same-day appointments, and lab results. The fourth question asks about an
+undocumented policy to check whether the model abstains.
+
+## What changed and why
+
+- `rag.py` loads policy files in alphabetical order, ranks them with TF-IDF
+  and cosine similarity, and labels each selected document with its filename.
+  Sorting and filename tie-breaking make retrieval order reproducible.
+- `app.py` adds the **Enable RAG** toggle and displays the retrieved files.
+  With RAG OFF, the model receives only the question. With RAG ON, it also
+  receives the labeled policy text and instructions to abstain when the
+  evidence is insufficient. The toggle makes it possible to compare both
+  modes with the same model and questions.
+
+## RAG OFF and ON evidence
+
+Codex ran each question in a fresh Streamlit AppTest session against local
+Ollama using `qwen2.5:1.5b`, temperature 0, and a retrieval limit of two.
+The comparison was repeated after the tokenizer change. The table shows
+the final run, and the answer text was identical across runs for each mode.
+The retrieved filenames and source-support judgments apply to RAG ON.
 
 | Question | Expected source | Retrieved filenames | Response without RAG | Response with RAG | Supported by the source? |
 | --- | --- | --- | --- | --- | --- |
@@ -15,7 +38,7 @@ The retrieved files are for RAG ON, and the source judgment applies to that answ
 | How are laboratory results communicated? | lab_results.txt | lab_results.txt, portal.txt | Listed generic delivery methods including email, phone, and text. Full reply below. | Laboratory results are communicated through the secure patient portal. | Yes. The policy says “Laboratory results are communicated through the secure patient portal.” |
 | Does the clinic provide free transportation? | None | None | I'm sorry, but I can't answer this question because I don't have any specific information about a particular clinic. The answer would depend on the clinic's policies and the location. If you know the name of the clinic or the location, you can search online or contact them directly to find out if they provide free transportation. | I do not have enough information in the provided documents. | Appropriate abstention. The six policies contain no transportation information. |
 
-Observed failure and rerun
+## Observed failure and rerun
 
 The transportation question exposed a retrieval failure. Plain TF-IDF
 returned billing.txt (cosine similarity 0.270) and lab_results.txt (0.234).
@@ -23,7 +46,7 @@ Generic wording such as “clinic” produced lexical overlap with unrelated
 policies. Neither policy answered the question. The model appropriately
 abstained even when it received those irrelevant sources.
 
-I switched TF-IDF to a tokenizer that filters common words and repeated
+Codex switched TF-IDF to a tokenizer that filters common words and repeated
 clinic boilerplate and normalizes policy terms such as “canceled” and
 “cancellation” to “cancel.” After the change, the transportation question
 retrieved zero files and the model still abstained. The three answerable
@@ -31,9 +54,9 @@ questions kept their intended policy ranked first. The cancellation policy
 already ranked first in this checkout, with a score of 0.266 before the
 change and 0.578 afterward.
 
-What the tests establish
+## What the tests establish
 
-.venv-brew/bin/python -m pytest -q reported 6 passed before the change
+`.venv-brew/bin/python -m pytest -q` reported 6 passed before the change
 and 8 passed after it. The two added regression tests check that the
 transportation question returns no matches and that “When can I cancel?”
 ranks the cancellation policy first. The suite also checks the six-document
@@ -42,21 +65,21 @@ The automated suite exercises retrieval and context formatting. The four
 live comparisons provide evidence about those specific model replies.
 Other questions and policy wording could produce different results.
 
-Does RAG automatically make the chatbot trustworthy?
+## Does RAG automatically make the chatbot trustworthy?
 
 No. The lab policy gave Qwen the evidence it needed to answer specifically
 about the secure patient portal. TF-IDF can still miss relevant sources or
 retrieve unrelated files, and Qwen can add unsupported details even when
 it receives the right policy. Verify each claim against the policy text.
 
-Does caching help?
+## Does caching help?
 
 Caching the loaded policies, fitted vectorizer, and document vectors could
 reduce retrieval work across questions. The app would still vectorize each
 question, rank the policies, and generate a response. Policy edits would
-need to invalidate the cache. I did not implement or benchmark caching.
+need to invalidate the cache. Caching was discussed as an extension.
 
-Full lab-results reply with RAG OFF
+## Full lab-results reply with RAG OFF
 
 Laboratory results are typically communicated in several ways, depending on the context and the nature of the results. Here are some common methods:
 
